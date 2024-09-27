@@ -1,15 +1,16 @@
-import { categories } from "../data/category";
-import DatePicker from 'react-date-picker';
-import 'react-date-picker/dist/DatePicker.css';
-import 'react-calendar/dist/Calendar.css';
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import { DraftExpense, Value } from "../types";
-import ErrorMessage from "./ErrorMessage";
-import { useBudget } from "../hooks/useBudget";
+import { categories } from "../data/category"
+import DatePicker from 'react-date-picker'
+import 'react-date-picker/dist/DatePicker.css'
+import 'react-calendar/dist/Calendar.css'
+import { ChangeEvent, FormEvent, useEffect, useState } from "react"
+import { DraftExpense, Value } from "../types"
+import ErrorMessage from "./ErrorMessage"
+import { useBudget } from "../hooks/useBudget"
 
 
 
 export default function ExprenseForm() {
+
 
 const [expense, setExpense] = useState<DraftExpense>({
     amount : 0,
@@ -19,12 +20,14 @@ const [expense, setExpense] = useState<DraftExpense>({
 }) 
 
 const [error, setError] = useState('')
-const {dispatch, state} = useBudget()
+const [previousAmount, setPreviousAmount] = useState(0)
+const {dispatch, state, remainingBudget} = useBudget()
 
 useEffect(() => {
     if(state.editingId) {
         const editingExpenses = state.expense.filter(currentExpense => currentExpense.id === state.editingId )[0]
         setExpense(editingExpenses)
+        setPreviousAmount(editingExpenses.amount)
     }
 }, [state.editingId])
 
@@ -35,8 +38,7 @@ const handleChange = (e : ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelect
     setExpense({
         ...expense, 
         [name] : isAmountField? +value : value
-    })
-    
+    }) 
 }
 
 const handleChangeDate = ((value : Value)=> {
@@ -47,10 +49,17 @@ const handleChangeDate = ((value : Value)=> {
 })
 
 const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); 
+    e.preventDefault() 
 
     if(Object.values(expense).includes('')) {
         setError('Todos los cambios son obligatorios')
+        return
+    }
+    
+    //Validar que no me sobrepase del limite
+    
+    if((expense.amount - previousAmount) > remainingBudget) {
+        setError('No es posible la accion, se sale del presupuesto')
         return
     }
 
@@ -71,13 +80,17 @@ const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         category : '',
         date : new Date()
     })
+
+    setPreviousAmount(0)
 }
 
 
 
     return (
         <form className="space-y-5" onSubmit={handleSubmit}>
-            <legend className="uppercase text-center text-2xl font-black border-b-4 border-blue-500 py-2">Nuevo gasto</legend>
+            <legend className="uppercase text-center text-2xl font-black border-b-4 border-blue-500 py-2">
+                {state.editingId? 'Actualizar gasto' : 'Nuevo gasto'}
+            </legend>
             <div className="flex flex-col gap-2">
             
                 {error && <ErrorMessage>{error}</ErrorMessage> }
@@ -137,7 +150,7 @@ const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
             <input 
                 type="submit" 
                 className="bg-blue-600 cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg"
-                value={'Registrar gastos'}
+                value={state.editingId? 'Actualizar gasto' : 'Registrar Gasto'}
             />
         </form>
     )

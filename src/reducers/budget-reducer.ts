@@ -1,4 +1,4 @@
-import { DraftExpense, Expense } from './../types/index';
+import { category, DraftExpense, Expense } from './../types/index';
 import {v4 as uuidv4} from 'uuid'
 
 
@@ -9,20 +9,34 @@ export type budgetActions =
     {type : 'add-expense', payload : {expense : DraftExpense}}  |
     {type : 'remove-expense', payload : {id : Expense['id']}}  |
     {type : 'get-expense-by-id', payload : {id : Expense['id']}} |
-    {type : 'update-expense', payload : {expense : Expense}} 
+    {type : 'update-expense', payload : {expense : Expense}} |
+    {type : 'reset-expense'} |
+    {type : 'app-filter-category', payload : {id : category['id']}} 
 
 export type budgetState = {
     budget : number
     modal: boolean
     expense : Expense[]
     editingId : Expense['id']
+    currentCategory: category['id']
+}
+
+const initialExpense = () : Expense[] => {
+    const localstorageExpense = localStorage.getItem('expense')
+    return localstorageExpense ? JSON.parse(localstorageExpense) : [] 
+}
+
+const initialBudget = () : number => {
+    const localStorageBudget = localStorage.getItem('budget')
+    return localStorageBudget? +localStorageBudget : 0
 }
 
 export const initialState : budgetState = {
-    budget : 0,
+    budget : initialBudget(),
     modal: false,
-    expense : [],
-    editingId : ''
+    expense : initialExpense(),
+    editingId : '',
+    currentCategory: ''
 }
 
 const createExpense = (draftExpense : DraftExpense) : Expense => {
@@ -86,6 +100,19 @@ export const budgetReducer =
             expense : state.expense.map(expense => expense.id === action.payload.expense.id? action.payload.expense : expense),
             modal: false,
             editingId : ''
+        }
+    }
+    if(action.type === 'reset-expense') {
+        return {
+            ...state,
+            budget : 0,
+            expense : [],
+        }
+    }
+    if(action.type === 'app-filter-category') {
+        return {
+            ...state,
+            currentCategory: action.payload.id
         }
     }
 

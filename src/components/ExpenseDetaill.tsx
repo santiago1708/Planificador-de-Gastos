@@ -54,7 +54,7 @@ export default function ExpenseDetaill({expense} : ExpenseDetaillProps) {
                 leadingActions ={leadingActions()} /* De la izquierda a la derecha */
                 trailingActions ={trailingActions()} /* De derecha a izquierda */
             >
-                <div className="bg-white shadow-lg p-10 w-full border-b border-gray-200 flex gap-5 items-center">
+                <div className="bg-white shadow-lg p-6  w-full border-b border-gray-200 flex gap-5 items-center">
                     <div>
                         <img 
                             src={`/icono_${categoryInfo.icon}.svg`}
